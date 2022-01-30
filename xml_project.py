@@ -2,19 +2,31 @@ import xml.etree.ElementTree as ET
 import re
 import os
 import csv
-import json
 
-
+"""
+The aim of this tool is to compare two xmls files in terms of their structure and content.
+The discrepencies are represented through absolute xpaths containing corresponding attirbutes and texts.
+Example:
+    INVOICE_CENTER/CONTENT_FRAME/BLOCK_RULES/CHARACTER_SET=ISO-8859-1
+    INVOICE_CENTER/CONTENT_FRAME/BLOCK_RULES/CHARACTER_SET=UTF-8
+"""
 class Xpather:
 
 
     def __init__(self):
+        """
+        Initiating root and a full list of xpaths for a given xml.
+
+        """
         self.xml_root = None
         self.xplist = []
 
 
     def preprocessor(self, xml_file):
-        #https://bugs.python.org/issue18304
+        """
+        https://bugs.python.org/issue18304
+        Getting rid of namespaces, so far ET does not supply it by default.
+        """
         tree = ET.iterparse(xml_file)
         for _, el in tree:
             prefix, has_namespace, postfix = el.tag.rpartition('}')
@@ -24,6 +36,9 @@ class Xpather:
 
 
     def recognizer(self,element,xpath):
+        """
+        Recognize the elements on the basis of their belongings, either text + attribute, text or empty.
+        """
         try:
             text = element.text.rstrip()
             if element.attrib:
@@ -40,6 +55,9 @@ class Xpather:
 
 
     def depther(self,el=None,path=None):
+        """
+        Utilizing recurisve use of the function in order to find childs.
+        """
         if el is None and path is None:
             el = self.xml_root
             path = self.xml_root.tag
@@ -59,6 +77,10 @@ class Xpather:
 
 
 def cross_diff(diffdict):
+    """
+    Comparison of the given object attributes.
+    Producing a pretty csv.
+    """
     with open('differences2.csv', 'w', newline='') as csvfile:
         for k,v in diffdict.items():
             x = [p for p in v.values()]
@@ -70,13 +92,6 @@ def cross_diff(diffdict):
             else:
                 print(f'{k} will be skipped')
 
-#def cross_diff(ebid,diffdict):
-#    x = list(diffdict.keys())
-#    diff = sorted(set(diffdict[x[0]]).difference(diffdict[x[1]]))
-#    diff2 = sorted(set(diffdict[x[1]]).difference(diffdict[x[0]]))
-#    with open('differences2.csv', 'w', newline='') as csvfile:
-#        writer = csv.writer(csvfile, delimiter=';',dialect='excel')
-#        writer.writerow([ebid, "\n".join(diff) , "\n".join(diff2)])
 
 def main():
     p = re.compile('^(BEL.{32})\.(new|old)$')
@@ -99,7 +114,6 @@ def main():
                         differences[ebid] = {v : xPat.xplist}
             else:
                 count[ebid] = [f]
-    #print(json.dumps(differences, indent=4))
     cross_diff(differences)
 
 
@@ -108,22 +122,3 @@ if __name__ == "__main__":
 
 
 
-"""
-def main():
-    p = re.compile('^(BEL.{32})\.(new|old)$')
-    count = {}
-    differences = {}
-    for f in os.listdir():
-        if p.match(f):
-            ebid = str((p.match(f).group(1)))
-            if ebid in count:
-                count[ebid].append(f)
-                for v in count[ebid]:
-                    xPat = Xpather()
-                    xPat.preprocessor(v)
-                    xPat.depther()
-                    differences[ebid].update({v : xPat.xplist})
-            else:
-                count[ebid] = [f]
-    cross_diff(ebid,differences)
-"""
