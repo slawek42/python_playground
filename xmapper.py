@@ -67,8 +67,8 @@ class Reporter:
                 msg.set_content(body_for_email)
                 #msg.add_attachment(json.dumps(self.outs, indent=4),filename='js')
                 msg['Subject'] = 'Changes in iaddress'
-                msg['From'] = 'slawomir.ciszewski@posti.com'
-                msg['To'] = 'slawomir.ciszewski@posti.com'
+                msg['From'] = 'slawomir7597@gmail.com'
+                msg['To'] = 'slawomir7597@gmail.com'
                 s = smtplib.SMTP('localhost')
                 print(msg)
                 s.send_message(msg)
